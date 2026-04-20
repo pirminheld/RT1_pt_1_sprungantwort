@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PT₁-Strecke – Sprungantwort interaktiv</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --primary: #163a63;
+      --primary-light: #2f5f96;
+      --accent: #d9e6f5;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #d8e0ea;
+      --shadow: 0 10px 30px rgba(0,0,0,0.08);
+      --radius: 18px;
+      --good: #0f766e;
+      --warn: #92400e;
+      --grid: #6ea3e6;
+      --curve: #c81e1e;
+      --step: #b91c1c;
+      --guide: #1d4ed8;
+      --green: #10b981;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #eef3f9 0%, var(--bg) 100%);
+      color: var(--text);
+    }
+
+    header {
+      position: relative;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 24px 20px 18px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    }
+
+    .header-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      position: relative;
+      min-height: 76px;
+    }
+
+    .qr {
+      position: absolute;
+      right: 110px;
+      top: 0;
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      padding: 4px;
+    }
+
+    .logo {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 96px;
+      height: 72px;
+      object-fit: contain;
+    }
+
+    .title-wrap {
+      margin: 0 210px 0 20px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2rem;
+      color: var(--primary);
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    main {
+      max-width: 1280px;
+      margin: 28px auto;
+      padding: 0 18px 30px;
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      gap: 22px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    h2 {
+      margin-top: 0;
+      color: var(--primary);
+      font-size: 1.35rem;
+    }
+
+    h3 {
+      color: var(--primary-light);
+      margin: 20px 0 10px;
+      font-size: 1.05rem;
+    }
+
+    p, li { line-height: 1.5; }
+
+    .equation {
+      background: #f8fbff;
+      border: 1px solid var(--border);
+      border-left: 6px solid var(--primary-light);
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 1.02rem;
+      margin: 14px 0;
+    }
+
+    .control-group {
+      margin-bottom: 18px;
+      padding: 14px;
+      background: #f8fbff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .value {
+      color: var(--primary-light);
+      min-width: 96px;
+      text-align: right;
+    }
+
+    input[type="range"] { width: 100%; }
+
+    .small {
+      color: var(--muted);
+      font-size: 0.94rem;
+      margin-top: 6px;
+    }
+
+    .results {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .result-box {
+      background: #f8fbff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .result-box strong {
+      display: block;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+
+    .result-big {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--good);
+    }
+
+    .canvas-wrap {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px;
+      background: #fbfdff;
+    }
+
+    canvas {
+      width: 100%;
+      height: 700px;
+      display: block;
+      background: white;
+      border-radius: 12px;
+    }
+
+    .hint {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 14px;
+      background: #fff9ed;
+      border: 1px solid #f5d7a1;
+      color: var(--warn);
+    }
+
+    ul {
+      padding-left: 20px;
+      margin-top: 10px;
+    }
+
+    footer {
+      max-width: 1280px;
+      margin: 0 auto 24px;
+      padding: 0 18px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    footer a {
+      color: var(--primary-light);
+      text-decoration: none;
+    }
+
+    @media (max-width: 1000px) {
+      main { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 700px) {
+      .title-wrap { margin: 90px 0 0 0; }
+      .qr {
+        left: 50%;
+        right: auto;
+        transform: translateX(-120px);
+      }
+      .logo {
+        left: 50%;
+        right: auto;
+        transform: translateX(40px);
+      }
+      .results { grid-template-columns: 1fr; }
+      canvas { height: 560px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <img src="QRCode.png" alt="QR-Code" class="qr" onerror="this.style.display='none'">
+      <img src="FTS_logo.png" alt="FTS Logo" class="logo" onerror="this.style.display='none'">
+      <div class="title-wrap">
+        <h1>PT₁-Regelstrecke interaktiv</h1>
+        <div class="subtitle">Elektroantrieb mit Schwungscheibe – grafische Darstellung der Sprungantwort</div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Parameter einstellen</h2>
+      <p>
+        Bei einer <strong>PT₁-Strecke</strong> steigt der Ausgang <strong>verzögert</strong> an und nähert sich dem stationären Endwert <strong>asymptotisch</strong> an.
+      </p>
+
+      <div class="equation">
+        Eingang: <strong>Stellgröße y = Spannung U<sub>y</sub></strong><br>
+        Ausgang: <strong>Regelgröße x = Drehzahl n<sub>x</sub> → Spannung U<sub>x</sub></strong><br>
+        Sprungantwort: <strong>x(t) = K<sub>PS</sub> · Δy · (1 - e<sup>-t/T₁</sup>)</strong>
+      </div>
+
+      <div class="control-group">
+        <label for="uy">
+          <span>Eingangssprung ΔU<sub>y</sub></span>
+          <span class="value" id="uyValue">10,0 V</span>
+        </label>
+        <input id="uy" type="range" min="1" max="20" step="0.5" value="10">
+        <div class="small">Höhe des Eingangssprungs bei t = 0.</div>
+      </div>
+
+      <div class="control-group">
+        <label for="kps">
+          <span>Übertragungsbeiwert K<sub>PS</sub></span>
+          <span class="value" id="kpsValue">1,00</span>
+        </label>
+        <input id="kps" type="range" min="0.2" max="2.0" step="0.1" value="1.0">
+        <div class="small">Bestimmt den stationären Endwert der Ausgangsgröße.</div>
+      </div>
+
+      <div class="control-group">
+        <label for="t1">
+          <span>Zeitkonstante T₁</span>
+          <span class="value" id="t1Value">1,0 s</span>
+        </label>
+        <input id="t1" type="range" min="0.5" max="5" step="0.1" value="1.0">
+        <div class="small">Nach einer Zeitkonstante sind 63,2 % des Endwerts erreicht.</div>
+      </div>
+
+      <div class="control-group">
+        <label for="tEnd">
+          <span>Darstellungsdauer</span>
+          <span class="value" id="tEndValue">5,0 · T₁</span>
+        </label>
+        <input id="tEnd" type="range" min="3" max="8" step="0.5" value="5">
+        <div class="small">Zeitachse als Vielfaches der Zeitkonstante T₁.</div>
+      </div>
+
+      <div class="results">
+        <div class="result-box">
+          <strong>Stationärer Endwert</strong>
+          <div class="result-big" id="xInfBox">10,00 V</div>
+          <div>x(∞) = K<sub>PS</sub> · ΔU<sub>y</sub></div>
+        </div>
+        <div class="result-box">
+          <strong>Wert bei T₁</strong>
+          <div class="result-big" id="xT1Box">6,32 V</div>
+          <div>entspricht 63,2 % des Endwerts</div>
+        </div>
+        <div class="result-box">
+          <strong>Wert bei 3·T₁</strong>
+          <div class="result-big" id="x3T1Box">9,50 V</div>
+          <div>ca. 95,0 % des Endwerts</div>
+        </div>
+        <div class="result-box">
+          <strong>Wert bei 5·T₁</strong>
+          <div class="result-big" id="x5T1Box">9,93 V</div>
+          <div>ca. 99,3 % des Endwerts</div>
+        </div>
+      </div>
+
+      <h3>Merksätze</h3>
+      <ul>
+        <li>Bei <strong>t = T₁</strong> sind genau <strong>63,2 %</strong> des Endwerts erreicht.</li>
+        <li>Bei <strong>t = 5·T₁</strong> ist die Strecke praktisch eingeschwungen.</li>
+        <li>Je größer <strong>T₁</strong> ist, desto träger reagiert die Strecke.</li>
+        <li>Je größer <strong>K<sub>PS</sub></strong> ist, desto größer ist der Endwert.</li>
+      </ul>
+
+      <div class="hint" id="stateInfo">
+        Der Ausgang steigt verzögert an und nähert sich dem Endwert asymptotisch. Nach einer Zeitkonstante T₁ werden 63,2 % des Endwerts erreicht.
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Sprungantwort des PT₁-Glieds</h2>
+      <div class="canvas-wrap">
+        <canvas id="pt1Canvas" width="900" height="700"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <a href="impressum.html">Impressum</a>
+  </footer>
+
+  <script>
+    const uySlider = document.getElementById('uy');
+    const kpsSlider = document.getElementById('kps');
+    const t1Slider = document.getElementById('t1');
+    const tEndSlider = document.getElementById('tEnd');
+
+    const uyValue = document.getElementById('uyValue');
+    const kpsValue = document.getElementById('kpsValue');
+    const t1Value = document.getElementById('t1Value');
+    const tEndValue = document.getElementById('tEndValue');
+
+    const xInfBox = document.getElementById('xInfBox');
+    const xT1Box = document.getElementById('xT1Box');
+    const x3T1Box = document.getElementById('x3T1Box');
+    const x5T1Box = document.getElementById('x5T1Box');
+    const stateInfo = document.getElementById('stateInfo');
+
+    const canvas = document.getElementById('pt1Canvas');
+    const ctx = canvas.getContext('2d');
+
+    function formatNumber(value, decimals = 2) {
+      return value.toFixed(decimals).replace('.', ',');
+    }
+
+    function pt1Response(t, K, U, T1) {
+      return K * U * (1 - Math.exp(-t / T1));
+    }
+
+    function getState() {
+      const uy = Number(uySlider.value);
+      const kps = Number(kpsSlider.value);
+      const T1 = Number(t1Slider.value);
+      const tFactor = Number(tEndSlider.value);
+      const xInf = kps * uy;
+      const tMax = tFactor * T1;
+      return { uy, kps, T1, tFactor, xInf, tMax };
+    }
+
+    function updateTexts() {
+      const s = getState();
+      uyValue.textContent = `${formatNumber(s.uy, 1)} V`;
+      kpsValue.textContent = formatNumber(s.kps, 2);
+      t1Value.textContent = `${formatNumber(s.T1, 1)} s`;
+      tEndValue.textContent = `${formatNumber(s.tFactor, 1)} · T₁`;
+
+      const xT1 = pt1Response(s.T1, s.kps, s.uy, s.T1);
+      const x3T1 = pt1Response(3 * s.T1, s.kps, s.uy, s.T1);
+      const x5T1 = pt1Response(5 * s.T1, s.kps, s.uy, s.T1);
+
+      xInfBox.textContent = `${formatNumber(s.xInf, 2)} V`;
+      xT1Box.textContent = `${formatNumber(xT1, 2)} V`;
+      x3T1Box.textContent = `${formatNumber(x3T1, 2)} V`;
+      x5T1Box.textContent = `${formatNumber(x5T1, 2)} V`;
+
+      stateInfo.textContent = `Bei ΔUy = ${formatNumber(s.uy,1)} V, KPS = ${formatNumber(s.kps,2)} und T₁ = ${formatNumber(s.T1,1)} s ergibt sich ein stationärer Endwert von ${formatNumber(s.xInf,2)} V. Nach einer Zeitkonstante T₁ sind 63,2 % davon erreicht.`;
+    }
+
+    function drawGrid(x, y, w, h, cols, rows) {
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--grid').trim();
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= cols; i++) {
+        const xx = x + (w / cols) * i;
+        ctx.beginPath();
+        ctx.moveTo(xx, y);
+        ctx.lineTo(xx, y + h);
+        ctx.stroke();
+      }
+      for (let i = 0; i <= rows; i++) {
+        const yy = y + (h / rows) * i;
+        ctx.beginPath();
+        ctx.moveTo(x, yy);
+        ctx.lineTo(x + w, yy);
+        ctx.stroke();
+      }
+    }
+
+    function drawAxes(x, y, w, h, xLabel, yLabel) {
+      ctx.strokeStyle = '#111827';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x + 55, y + h - 45);
+      ctx.lineTo(x + w - 25, y + h - 45);
+      ctx.moveTo(x + 55, y + h - 45);
+      ctx.lineTo(x + 55, y + 25);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(x + w - 25, y + h - 45);
+      ctx.lineTo(x + w - 35, y + h - 50);
+      ctx.moveTo(x + w - 25, y + h - 45);
+      ctx.lineTo(x + w - 35, y + h - 40);
+      ctx.moveTo(x + 55, y + 25);
+      ctx.lineTo(x + 50, y + 35);
+      ctx.moveTo(x + 55, y + 25);
+      ctx.lineTo(x + 60, y + 35);
+      ctx.stroke();
+
+      ctx.fillStyle = '#111827';
+      ctx.font = 'bold 18px Arial';
+      ctx.fillText(xLabel, x + w - 12, y + h - 38);
+      ctx.fillText(yLabel, x + 8, y + 18);
+    }
+
+    function draw() {
+      const s = getState();
+      const W = canvas.width;
+      const H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, W, H);
+
+      const margin = 25;
+      const left = 20;
+      const width = W - 40;
+      const topSectionY = 35;
+      const sectionHeight = 250;
+      const bottomSectionY = 325;
+      const bottomHeight = 320;
+
+      drawGrid(left, topSectionY, width, sectionHeight, 32, 8);
+      drawGrid(left, bottomSectionY, width, bottomHeight, 32, 10);
+
+      drawAxes(left, topSectionY, width, sectionHeight, 't', 'Uy\n[V]');
+      drawAxes(left, bottomSectionY, width, bottomHeight, 't', 'Ux\n[V]/%');
+
+      const x0 = left + 55;
+      const xMax = left + width - 25;
+      const topBase = topSectionY + sectionHeight - 45;
+      const topY = topSectionY + 55;
+
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--step').trim();
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(x0, topBase);
+      ctx.lineTo(x0, topY);
+      ctx.lineTo(xMax - 30, topY);
+      ctx.stroke();
+
+      ctx.fillStyle = '#374151';
+      ctx.font = 'bold 16px Arial';
+      ctx.fillText('Eingangssprung', left + width / 2 - 70, topSectionY + 28);
+      ctx.fillText('t₀', x0 - 2, topBase + 18);
+
+      ctx.strokeStyle = '#111827';
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.moveTo(xMax - 75, topBase);
+      ctx.lineTo(xMax - 75, topY);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(xMax - 80, topBase + 10);
+      ctx.lineTo(xMax - 75, topBase);
+      ctx.lineTo(xMax - 70, topBase + 10);
+      ctx.moveTo(xMax - 80, topY - 10);
+      ctx.lineTo(xMax - 75, topY);
+      ctx.lineTo(xMax - 70, topY - 10);
+      ctx.stroke();
+      ctx.fillText('ΔUᵧ', xMax - 105, (topBase + topY) / 2 + 6);
+
+      const bx0 = left + 55;
+      const bxMax = left + width - 25;
+      const by0 = bottomSectionY + bottomHeight - 45;
+      const usableW = bxMax - bx0;
+      const usableH = by0 - (bottomSectionY + 25);
+      const maxY = s.xInf * 1.12;
+
+      const xToPx = t => bx0 + (t / s.tMax) * usableW;
+      const yToPx = val => by0 - (val / maxY) * usableH;
+
+      ctx.fillStyle = '#374151';
+      ctx.font = 'bold 16px Arial';
+      ctx.fillText('Sprungantwort', left + width / 2 - 60, bottomSectionY + 28);
+
+      const endY = yToPx(s.xInf);
+      const y632 = yToPx(0.632 * s.xInf);
+      const y993 = yToPx(0.993 * s.xInf);
+
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--guide').trim();
+      ctx.lineWidth = 2;
+      ctx.setLineDash([10, 6]);
+      ctx.beginPath();
+      ctx.moveTo(bx0, endY);
+      ctx.lineTo(bxMax - 30, endY);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(xToPx(5 * s.T1), bottomSectionY + 25);
+      ctx.lineTo(xToPx(5 * s.T1), by0);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(xToPx(s.T1), y632);
+      ctx.lineTo(xToPx(s.T1), by0);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(bx0, y632);
+      ctx.lineTo(xToPx(s.T1), y632);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--green').trim();
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(bx0, by0);
+      ctx.lineTo(xToPx(s.T1), endY);
+      ctx.stroke();
+
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--curve').trim();
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      for (let i = 0; i <= 400; i++) {
+        const t = (s.tMax / 400) * i;
+        const val = pt1Response(t, s.kps, s.uy, s.T1);
+        const px = xToPx(t);
+        const py = yToPx(val);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+
+      ctx.fillStyle = '#111827';
+      ctx.font = 'bold 14px Arial';
+      ctx.fillText('0%', bx0 - 34, by0 + 5);
+      ctx.fillText('63,2%', bx0 - 52, y632 + 5);
+      ctx.fillText('99,3%', bx0 - 52, y993 + 5);
+      ctx.fillText('100%', bx0 - 45, endY + 5);
+      ctx.fillText('t₀', bx0, by0 + 18);
+
+      const tickValues = [1, 2, 3, 4, 5];
+      tickValues.forEach(n => {
+        const tx = xToPx(n * s.T1);
+        if (tx <= bxMax) {
+          ctx.beginPath();
+          ctx.moveTo(tx, by0);
+          ctx.lineTo(tx, by0 - 14);
+          ctx.strokeStyle = '#111827';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.fillStyle = '#111827';
+          ctx.font = 'bold 14px Arial';
+          ctx.fillText(n === 1 ? 'T₁' : `${n}·T₁`, tx - (n === 1 ? 8 : 12), by0 + 28);
+        }
+      });
+
+      ctx.fillStyle = '#374151';
+      ctx.font = 'italic 16px Arial';
+      ctx.fillText('stationärer Zustand', bxMax - 210, endY - 55);
+      ctx.font = 'italic 15px Arial';
+      ctx.fillText('lim     Δx = KPS · Δy', bxMax - 200, endY - 28);
+      ctx.fillText('t→∞', bxMax - 190, endY - 10);
+
+      ctx.strokeStyle = '#111827';
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.moveTo(bxMax - 80, by0);
+      ctx.lineTo(bxMax - 80, endY);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(bxMax - 85, by0 - 10);
+      ctx.lineTo(bxMax - 80, by0);
+      ctx.lineTo(bxMax - 75, by0 - 10);
+      ctx.moveTo(bxMax - 85, endY + 10);
+      ctx.lineTo(bxMax - 80, endY);
+      ctx.lineTo(bxMax - 75, endY + 10);
+      ctx.stroke();
+      ctx.fillText('ΔUₓ = KPS · ΔUᵧ', bxMax - 145, (by0 + endY) / 2 + 6);
+    }
+
+    function render() {
+      updateTexts();
+      draw();
+    }
+
+    [uySlider, kpsSlider, t1Slider, tEndSlider].forEach(el => el.addEventListener('input', render));
+    render();
+  </script>
+</body>
+</html>
